@@ -1,0 +1,8 @@
+/staging/.vagrant
+/staging/*.log
+/roles/mysql/files/mysql.sql.bz2
+/roles/fetch-dynamic-data/files/config.tar.bz2
+/roles/fetch-dynamic-data/files/media.tar.bz2
+/roles/fetch-dynamic-data/files/wordpress.tar.bz2
+/roles/certificates/files/etc
+/*.retry

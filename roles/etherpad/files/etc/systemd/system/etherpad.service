@@ -1,0 +1,16 @@
+[Unit]
+Description=Node.js etherpad Server
+
+[Service]
+WorkingDirectory=/opt/etherpad
+ExecStart=/opt/etherpad/bin/run.sh
+Restart=always
+RestartSec=10                       # Restart service after 10 seconds if node service crashes
+StandardOutput=syslog               # Output to syslog
+StandardError=syslog                # Output to syslog
+SyslogIdentifier=nodejs-etherpad
+User=etherpad
+Group=etherpad
+
+[Install]
+WantedBy=multi-user.target

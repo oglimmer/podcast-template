@@ -1,0 +1,4 @@
+AuthName "Webstats"
+AuthType Basic
+AuthUserFile /etc/apphtpasswd
+require valid-user

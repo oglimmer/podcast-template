@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ ! -e /etc/mailenabled ]; then
+	iptables-restore < /etc/iptables.rules
+	echo "email disbaled"
+fi
+
+exit 0

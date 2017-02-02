@@ -1,0 +1,4 @@
+MAILTO="{{ adminEmail }}"
+# crontab -l
+*	*	*	*	*	root	/usr/local/bin/monitor.sh
+*/15	*	*	*	*	root	/usr/local/bin/statistics.sh

@@ -1,0 +1,48 @@
+---
+# parameter to apt-get true/false
+# would force a apt-get cache update
+apt_update_cache: false
+
+# python variable True/False
+# will clean all temporary (build) files before running the role
+cleanTemporaryFiles: False
+
+# by default: process all depdendencies for all roles
+# however: it could make often sense to skip dependencies
+noDependencies: false
+
+# Reverse dns name of the server
+rdns: YOUR_DOMAIN
+
+# Email of the server admin
+adminEmail: YOUR_EMAIL
+
+# the key for ccrypt to backups
+backup_key: PASS
+
+# mumble
+mumble_serverpassword: PASS
+
+# etherpad
+etherpad_user: PASS
+etherpad_admin: PASS
+
+# mysql passwords
+root_db_password: PASS
+usr_wordpress_prod_password: PASS
+usr_etherpad_password: PASS
+
+# a global htpasswd
+htpasswd:
+  webstats:
+    name: webstats
+    pass: PASS
+  webdav:
+    name: webdav
+    pass: PASS
+
+# timezone for PHP
+phpTimezone: Europe/Berlin
+
+# a host where a graphite instance is running
+graphitehost: HOST

@@ -1,0 +1,83 @@
+---
+
+- name: create latest backup
+  command: /usr/local/bin/backup_script.sh DAILY NO_UPLOAD
+
+- name: clear all files
+  file: path=roles/fetch-dynamic-data/files state=absent
+  connection: local
+  sudo: False
+
+- name: create files dir
+  file: path=roles/fetch-dynamic-data/files state=directory
+  connection: local
+  sudo: False
+
+#
+# mysql-db, config, wordpress, media
+#
+
+- name: get day
+  connection: local
+  sudo: False
+  command: date -u +"%d"
+  register: datum
+  changed_when: False
+
+- name: fetch latest mysql backup file
+  fetch: 
+    src: "/home/backup/{{ item.name }}-{{ datum.stdout }}.{{ item.ext }}"
+    dest: "roles/fetch-dynamic-data/files/{{ item.name }}.{{ item.ext }}"
+    fail_on_missing: yes 
+    flat: yes
+  with_items:
+    - { name: mysql, ext: sql.bz2.cpt }
+    - { name: config, ext: tar.bz2.cpt }
+    - { name: wordpress, ext: tar.bz2.cpt }
+    - { name: media, ext: tar.bz2.cpt }
+
+- name: decrypt
+  connection: local
+  sudo: False
+  command: ccrypt -d -K {{ backup_key }} {{ playbook_dir }}/roles/fetch-dynamic-data/files/{{ item }}
+  with_items:
+    - mysql.sql.bz2.cpt
+    - config.tar.bz2.cpt
+    - wordpress.tar.bz2.cpt
+    - media.tar.bz2.cpt
+
+#
+# mysql
+#
+
+- name: copy mysql.sql.bz2
+  connection: local
+  sudo: False
+  copy:
+    src={{ playbook_dir }}/roles/fetch-dynamic-data/files/mysql.sql.bz2
+    dest={{ playbook_dir }}/roles/mysql/files/mysql.sql.bz2
+
+- name: clear mysql files
+  file: path=roles/fetch-dynamic-data/files/{{ item }} state=absent
+  connection: local
+  sudo: False
+  with_items:
+    - mysql.sql.bz2
+
+#
+# /etc/letsencrypt
+#
+
+- name: clear letsencrypt directory in certificates/files
+  file: path=roles/certificates/files/letsencrypt state=absent
+  connection: local
+  sudo: False
+
+- name: extract letsencrypt
+  unarchive:
+    src: files/config.tar.bz2
+    dest: "{{ playbook_dir }}/roles/certificates/files"
+    exclude: var/
+  connection: local
+  sudo: False
+

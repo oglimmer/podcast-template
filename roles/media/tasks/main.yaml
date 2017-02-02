@@ -1,0 +1,11 @@
+---
+
+- name: create /var/www/media
+  file: path=/var/www/media state=directory owner=www-data group=www-data mode=0775
+  register: createmedia
+
+# this will create the target dir if needed
+- name: unzip wp-content from backup
+  unarchive: src=roles/fetch-dynamic-data/files/media.tar.bz2 dest=/ owner=www-data group=www-data
+  when: createmedia.changed
+

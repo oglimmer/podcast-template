@@ -1,0 +1,33 @@
+---
+- name: Installs ccrypt
+  apt: pkg={{ item }} state=installed update_cache={{ apt_update_cache }}
+  with_items:
+    - ccrypt
+    - curl
+
+
+- name: copy backup_script.sh
+  copy: src=backup_script.sh dest=/usr/local/bin/ mode=0700
+
+- name: copy keyfile
+  template: src=keyfile dest=/etc/ mode=0400
+
+
+- name: copy google_auth.sh
+  copy: src=google_auth.sh dest=/usr/local/bin/ mode=0700
+
+- name: copy google_up.sh
+  copy: src=google_up.sh dest=/usr/local/bin/ mode=0700
+
+- name: copy google_del.py
+  copy: src=google_del.py dest=/usr/local/bin/ mode=0700
+
+
+- name: copy backup-script-cron
+  template: src=backup-script-cron dest=/etc/cron.d/
+
+- name: create backup dir
+  command: mkdir -p /home/backup creates=/home/backup
+
+- name: create backup-config
+  command: touch /etc/backup-config creates=/etc/backup-config

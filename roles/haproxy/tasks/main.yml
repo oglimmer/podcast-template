@@ -1,0 +1,18 @@
+---
+
+- name: Installs haproxy
+  apt: pkg=haproxy state=installed update_cache={{ apt_update_cache }}
+
+- name: copy haproxy.cfg
+  template: src=haproxy.cfg dest=/etc/haproxy/
+  notify:
+    - restart haproxy
+
+- name: copy 503.http
+  copy: src=503.http dest=/etc/haproxy/errors/
+  notify:
+    - restart haproxy
+
+- name: set haproxy-config
+  lineinfile: dest=/etc/default/haproxy regexp='^ENABLED=' line='ENABLED=1'
+  notify: restart haproxy

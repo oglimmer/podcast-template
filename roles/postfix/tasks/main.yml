@@ -1,0 +1,41 @@
+---
+
+- name: copy iptables.rules
+  copy: src=iptables.rules dest=/etc
+
+- name: copy iptablesload
+  copy: src=iptablesload dest=/etc/network/if-pre-up.d mode=0755
+  register: iptablesload
+
+- name: initial load of iptables
+  shell: iptables-restore < /etc/iptables.rules
+  when: iptablesload.changed
+
+- name: Installs postfix
+  apt: pkg=postfix state=installed update_cache={{ apt_update_cache }}
+
+- name: ensure postfix is running and starts on boot
+  service: name=postfix state=started enabled=true
+
+- name: set myhostname
+  lineinfile: dest=/etc/postfix/main.cf regexp='^myhostname ' line='myhostname = {{ rdns }}'
+  notify:
+    - restart postfix
+
+- name: set mydestination
+  lineinfile: dest=/etc/postfix/main.cf regexp='^mydestination ' line='mydestination = localdomain, localhost, localhost.localdomain, {{ rdns }}'
+  notify:
+    - restart postfix
+
+- name: set inet_protocols to ipv4
+  lineinfile: dest=/etc/postfix/main.cf regexp='^inet_protocols ' line='inet_protocols = ipv4'
+  notify:
+    - restart postfix
+
+- name: copy aliases
+  template: src=aliases.j2 dest=/etc/aliases
+  register: p
+
+- name: re-created alias database
+  command: newaliases
+  when: p.changed

@@ -1,0 +1,6 @@
+HTTP/1.0 503 Service Unavailable
+Cache-Control: no-cache
+Connection: close
+Content-Type: application/javascript
+
+{"status_codes": 503, "status_text": "503 Service Unavailable", "status_information": "The server is currently in maintenance mode and therefore unable to handle your request."}

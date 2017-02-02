@@ -1,0 +1,40 @@
+---
+
+- name: Installs dependencies
+  apt: pkg={{ item }} state=installed update_cache={{ apt_update_cache }}
+  with_items:
+  - gzip
+  - git
+  - curl
+  - python
+  - libssl-dev
+  - pkg-config
+  - build-essential
+  - nodejs
+  - npm
+
+- name: apply fix to Ubuntu 13.10 and beyond
+  command: ln -s /usr/bin/nodejs /usr/bin/node creates=/usr/bin/node
+
+- name: git clone
+  git: 
+    repo: git://github.com/ether/etherpad-lite.git
+    dest: /opt/etherpad
+  register: check_download
+
+- name: create user etherpad
+  user: name=etherpad
+
+- name: copy start/stop script
+  copy: src=etc/systemd/system/etherpad.service dest=/etc/systemd/system mode=0755
+
+- name: copy settings.json
+  template: src=settings.json dest=/opt/etherpad owner=etherpad group=etherpad
+  notify: restart etherpad
+
+- name: set group for /var/lib/node/etherpad
+  file: state=directory path=/opt/etherpad owner=etherpad group=etherpad recurse=yes
+  when: check_download.changed
+
+- name: enable and start noded
+  service: name=etherpad state=started enabled=yes

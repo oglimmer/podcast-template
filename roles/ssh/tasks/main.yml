@@ -1,0 +1,37 @@
+---
+
+- name: add en_US.UTF-8
+  shell: locale-gen en_US.UTF-8
+  changed_when: False
+
+#- name: disable root login
+#  lineinfile: dest=/etc/ssh/sshd_config regexp='^PermitRootLogin' line='PermitRootLogin no'
+#  notify: restart sshd
+
+- name: set ClientAliveInterval to 60 secs (avoid connection reset)
+  lineinfile: dest=/etc/ssh/sshd_config line='ClientAliveInterval 60' insertbefore='X11Forwarding'
+  notify: restart sshd
+
+- name: check for timezone UTC
+  shell: diff -q /etc/localtime /usr/share/zoneinfo/UTC >/dev/null
+  register: check_timezone
+  changed_when: check_timezone.rc != 0
+  ignore_errors: True
+  failed_when: False
+
+- name: set timezone UTC (localtime)
+  command: ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+  when: check_timezone.rc != 0
+
+- name: set timezone UTC (timezone)
+  lineinfile: dest=/etc/timezone regexp='.*' line='UTC'
+
+- name: update the server (apt-get update)
+  apt: update_cache=True
+  when: apt_update_cache
+
+- name: upgrade a server (apt-get upgrade)
+#  apt: upgrade=full
+#  not working with ubuntu 16.04 `Could not find aptitude. Please ensure it is installed.`
+  command: apt-get upgrade -y
+  when: apt_update_cache

@@ -1,0 +1,31 @@
+---
+- hosts: all
+  roles:
+    - role: ssh
+      when: not noDependencies
+    - role: certificates
+      when: not noDependencies
+    - role: postfix
+      when: not noDependencies
+    - role: backup
+      when: not noDependencies
+    - role: stats
+      when: not noDependencies
+    - role: mysql
+      when: not noDependencies
+    - role: apache
+      when: not noDependencies
+    - role: haproxy
+      when: not noDependencies
+    - role: webdav
+      when: not noDependencies
+    - role: dkim
+      when: not noDependencies
+      admin_email: "{{ adminEmail }}"
+      dkim_selector: mail
+      dkim_domains:
+       - "{{ rdns }}"
+    - role: wordpress
+    - role: media
+    - role: mumble
+    - role: etherpad

@@ -1,0 +1,64 @@
+---
+
+- name: Installs apache and php
+  apt: pkg={{ item }} state=installed update_cache={{ apt_update_cache }}
+  with_items:
+  - libapache2-mod-php
+  - php-mysql
+  - apache2
+  - python-pip  
+
+## needed for `create password file` - the dict access
+- name: install passlib
+  pip: name=passlib
+
+## PHP
+
+- name: php timezont
+  lineinfile: dest=/etc/php/7.0/apache2/php.ini regexp='^.?date.timezone ' line='date.timezone ="{{ phpTimezone}}"'
+  notify: restart apache2
+
+## APACHE2
+
+- name: set defaultcharset to utf-8
+  lineinfile: dest=/etc/apache2/conf-available/charset.conf regexp='^.?AddDefaultCharset UTF-8' line='AddDefaultCharset UTF-8'
+  notify: restart apache2
+
+- name: add AddType audio/m4a .m4a
+  lineinfile: dest=/etc/apache2/mods-available/mime.conf insertbefore='</IfModule>' line='AddType audio/m4a .m4a'
+  notify: restart apache2
+
+- name: change bind
+  lineinfile: dest=/etc/apache2/ports.conf regexp='Listen.*80.*' line='Listen 127.0.0.1:8090'
+  notify: restart apache2
+
+- name: ensure apache2 is running and starts on boot
+  service: name=apache2 state=started enabled=true
+
+- name: Disable unneeded confs
+  command: a2disconf {{ item }} removes=/etc/apache2/conf-enabled/{{ item }}.conf
+  with_items:
+    - localized-error-pages
+    - serve-cgi-bin
+  notify: restart apache2
+
+
+## creating app htpasswd file
+
+- name: create password file
+  htpasswd: path=/etc/apphtpasswd name={{ item.value.name }} password={{ item.value.pass }} crypt_scheme=ldap_sha1
+  with_dict: "{{ htpasswd }}"
+
+#
+#
+#
+
+- name: copy 999-fallback.conf
+  copy: src=999-fallback.conf dest=/etc/apache2/sites-available/
+
+- name: Enable 999-fallback.conf
+  command: a2ensite 999-fallback creates=/etc/apache2/sites-enabled/999-fallback.conf
+  notify: restart apache2
+
+- name: replace default index.html
+  copy: src=index.html dest=/var/www/html

@@ -1,0 +1,6 @@
+---
+dependencies:
+    - role: mysql
+      when: not noDependencies
+    - role: apache
+      when: not noDependencies

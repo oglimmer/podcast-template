@@ -1,0 +1,16 @@
+---
+
+- name: Installs mumble-server
+  apt: pkg={{ item }} state=installed update_cache={{ apt_update_cache }}
+  with_items:
+    - mumble-server
+  register: mumbleserverinstalled
+
+- name: copy ini
+  template: src=mumble-server.ini dest=/etc/
+
+# this will create the target dir if needed
+- name: unzip mumble-server.sqlite from backup
+  unarchive: src=roles/fetch-dynamic-data/files/config.tar.bz2 dest=/ exclude=etc/ owner=mumble-server group=mumble-server
+  when: mumbleserverinstalled.changed
+  ignore_errors: True

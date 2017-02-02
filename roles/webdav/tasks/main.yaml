@@ -1,0 +1,17 @@
+---
+
+- name: copy 200-webdav.conf
+  template: src=200-webdav.conf dest=/etc/apache2/sites-available/
+
+- name: Enable conf
+  command: a2ensite 200-webdav creates=/etc/apache2/sites-enabled/200-webdav.conf
+  notify: restart apache2
+
+- name: Enable mod dav
+  command: a2enmod dav creates=/etc/apache2/mods-enabled/dav.load
+  notify: restart apache2
+
+- name: Enable mod dav_fs
+  command: a2enmod dav_fs creates=/etc/apache2/mods-enabled/dav_fs.conf
+  notify: restart apache2
+

@@ -1,0 +1,125 @@
+---
+
+#
+# SEE https://help.ubuntu.com/lts/serverguide/wordpress.html
+#
+
+- name: Installs wordpress dependencies
+  apt: pkg={{ item }} state=installed update_cache={{ apt_update_cache }}
+  with_items:
+    - libao-common
+    - libao4
+    - libcurl3-gnutls
+    - libflac8
+    - libgd3
+    - libjbig0
+    - libjpeg-turbo8
+    - libjpeg8
+    - libogg0
+    - libphp-phpmailer
+    - librtmp1
+    - libspeex1
+    - libtiff5
+    - libvorbis0a
+    - libvorbisenc2
+    - libvorbisfile3
+    - libvpx3
+    - libx11-6
+    - libx11-data
+    - libxau6
+    - libxcb1
+    - libxdmcp6
+    - libxpm4
+    - vorbis-tools
+    - unzip
+    - tar
+    - gzip
+    - php-curl
+    - php-xml
+    - php-gd
+    - php-getid3
+    - php-twig
+    - php-mbstring
+  notify: restart apache2
+
+- name: create /etc/wordpress
+  file: path=/etc/wordpress state=directory
+
+- name: create /var/www/share
+  file: path=/var/www/share state=directory owner=www-data group=www-data mode=0775
+
+- name: create /var/www/wordpress
+  file: path=/var/www/wordpress state=directory owner=www-data group=www-data
+  register: createwordpress
+
+- name: download and extract
+  unarchive:
+    src: https://wordpress.org/latest.tar.gz
+    dest: /var/www/
+    remote_src: True
+  when: createwordpress.changed
+
+- name: set ownership of /var/www/wordpress to www-data:www-data
+  command: chown -R www-data:www-data /var/www/wordpress
+  when: createwordpress.changed
+
+- name: set chmod of /var/www/wordpress 664
+  command: find /var/www/wordpress -type f -exec chmod 664 {} \;
+  when: createwordpress.changed
+
+- name: set chmod of /var/www/wordpress 775
+  command: find /var/www/wordpress -type d -exec chmod 775 {} \;
+  when: createwordpress.changed
+
+- name: check if we have a backup to restore
+  local_action: stat path="roles/fetch-dynamic-data/files/wordpress.tar.bz2"
+  register: wordpressBackupExists
+  ignore_errors: True
+  sudo: False
+
+- name: delete /var/www/wordpress/wp-content as this comes via the backup
+  command: rm -rf /var/www/wordpress/wp-content
+  when: createwordpress.changed and wordpressBackupExists.stat.exists
+
+# this will create the target dir if needed
+- name: unzip wp-content from backup
+  unarchive: src=roles/fetch-dynamic-data/files/wordpress.tar.bz2 dest=/ owner=www-data group=www-data
+  when: createwordpress.changed and wordpressBackupExists.stat.exists
+
+- name: create languages folder
+  file: path=/var/www/wordpress/wp-content/languages state=directory owner=www-data group=www-data
+
+- name: copy wp-config.php
+  copy: src=wp-config.php dest=/var/www/wordpress
+
+- name: copy 100-wordpress.conf
+  template: src=100-wordpress.conf dest=/etc/apache2/sites-available/
+
+- name: template wordpress php conf
+  template: src=config-default.php dest=/etc/wordpress/
+
+- name: copy htaccess
+  copy: src=htaccess dest=/etc/wordpress/
+
+- name: create sym link
+  file:
+    src: /etc/wordpress/htaccess
+    dest: /var/www/wordpress/.htaccess
+    state: link
+
+- name: Enable conf
+  command: a2ensite 100-wordpress creates=/etc/apache2/sites-enabled/100-wordpress.conf
+  notify: restart apache2
+
+- name: create php-log
+  file: path=/var/log/apache2/php-errors.log owner=www-data group=www-data state=touch
+  changed_when: false
+
+#
+# apache conf
+#
+
+- name: Enable mod rewrite
+  command: a2enmod rewrite creates=/etc/apache2/mods-enabled/rewrite.load
+  notify: restart apache2
+  

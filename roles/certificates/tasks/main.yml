@@ -1,0 +1,39 @@
+---
+
+#
+# HAPROXY/APACHE BASED CERTIFICATES
+#
+
+- name: download certbot-auto
+  shell: wget -O /usr/local/bin/certbot-auto -q https://dl.eff.org/certbot-auto && chmod a+x /usr/local/bin/certbot-auto
+  args:
+    creates: /usr/local/bin/certbot-auto
+
+- name: copy update-certificates.sh
+  template: src=update-certificates.sh dest=/usr/local/bin
+
+- name: copy update-certificates.sh cron
+  template: src=certificates-cron dest=/etc/cron.d/
+
+#
+# letsencrypt folder and data
+#
+
+- name: check if /etc/letsencrypt exists
+  stat: path=/etc/letsencrypt
+  register: p
+
+- name: copy /etc/letsencrypt
+  copy: src=etc dest=/
+  when: p.stat.isdir is not defined
+
+- name: create /etc/mumble-server
+  file: path=/etc/mumble-server state=directory
+
+- name: copy fullchain.pem to mumble-server
+  copy: src=etc/letsencrypt/live/{{ rdns }}/fullchain.pem dest=/etc/mumble-server/
+  ignore_errors: True
+
+- name: copy privkey.pem  to mumble-server
+  copy: src=etc/letsencrypt/live/{{ rdns }}/privkey.pem  dest=/etc/mumble-server/
+  ignore_errors: True

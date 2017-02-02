@@ -1,0 +1,76 @@
+---
+
+#
+# https://www.digitalocean.com/community/tutorials/how-to-configure-collectd-to-gather-system-metrics-for-graphite-on-ubuntu-14-04
+#
+
+- name: Installs collectd
+  apt: pkg={{item}} state=installed update_cache={{ apt_update_cache }}
+  with_items:
+    - collectd
+    - collectd-utils
+    - goaccess
+    - pflogsumm
+
+#
+# collectd, if you uncomment this, make sure you set the hostname of a graphite server
+# in group_vars/all under graphitehost
+#
+
+#- name: copy stats.conf
+#  template: src=stats.conf dest=/etc/collectd/collectd.conf.d/stats.conf
+#  notify: restart collectd
+#
+#- name: disable LoadPlugin battery
+#  lineinfile: dest=/etc/collectd/collectd.conf regexp='^.?LoadPlugin battery' line='#LoadPlugin battery'
+#  notify: restart collectd
+#
+#- name: disable LoadPlugin irq
+#  lineinfile: dest=/etc/collectd/collectd.conf regexp='^.?LoadPlugin irq' line='#LoadPlugin irq'
+#  notify: restart collectd
+
+#
+# monitor.sh
+#
+
+- name: copy monitor.sh
+  copy: src=monitor.sh dest=/usr/local/bin mode=0755
+
+#
+# statistics.sh
+#
+
+- name: copy statistics.sh
+  copy: src=statistics.sh dest=/usr/local/bin/statistics.sh mode=0755
+
+- name: copy goaccess.conf
+  copy: src=goaccess.conf dest=/etc/ mode=644
+
+- name: create /var/www/webstats
+  file: path=/var/www/webstats state=directory mode=0755
+
+- name: create /usr/share/GeoIP* directories
+  file: path=/usr/share/{{ item }} state=directory mode=0755
+  with_items:
+    - GeoIP
+    - GeoIP_download
+
+- name: get GeoIP.dat
+  get_url: url=http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz dest=/usr/share/GeoIP_download/ mode=0644
+  register: downloadGeoIP
+
+- name: unzip GeoIP.dat
+  shell: cp /usr/share/GeoIP_download/GeoIP.dat.gz /usr/share/GeoIP && gzip -f -d /usr/share/GeoIP/GeoIP.dat.gz
+  when: downloadGeoIP.changed
+
+- name: copy .htaccess
+  copy: src=.htaccess dest=/var/www/webstats
+
+#
+# cron.d
+#
+
+- name: copy stats-cron
+  template: src=stats-cron dest=/etc/cron.d
+
+

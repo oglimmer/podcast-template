@@ -1,0 +1,3 @@
+MAILTO="{{ adminEmail }}"
+# crontab -l
+0	3	*	*	*	root	/usr/local/bin/backup_script.sh DAILY
