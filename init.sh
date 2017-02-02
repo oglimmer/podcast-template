@@ -1,13 +1,19 @@
 #!/bin/bash
 
-echo "Enter your domain (e.g. my-podcast.com)"
-read domain
+while [ -z "$domain" ]; do
+  echo "Enter your domain (e.g. my-podcast.com)"
+  read domain
+done
 
-echo "Enter the IP of your production host (e.g. 23.48.192.3)"
-read prodIp
+while [ -z "$prodIp" ]; do
+  echo "Enter the IP of your production host (e.g. 23.48.192.3)"
+  read prodIp
+done
 
-echo "Enter your admin email (e.g. webmaster@foo.bar)"
-read adminEmail
+while [ -z "$adminEmail" ]; do
+  echo "Enter your admin email (e.g. webmaster@foo.bar)"
+  read adminEmail
+done
 
 echo "Enter a backup key (empty for random)"
 read backupKey
