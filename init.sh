@@ -85,6 +85,7 @@ if [ "$confirm" != "yes" ] && [ "$confirm" != "y" ]; then
   exit 1;
 fi
 
+mkdir -p ./production
 echo -e "[$domain]\n$prodIp">./production/inventory.ini
 
 echo -e "[$domain]\n192.168.34.2">./staging/inventory.ini
@@ -115,12 +116,17 @@ echo "" | bzip2 | ccrypt -e -K "$backupKey" -f >roles/mysql/files/mysql.sql.bz2
 
 echo "Created empty mysql dump"
 
-mkdir tmp && cd tmp
-touch EMPTY
-tar cf ../roles/fetch-dynamic-data/files/media.tar *
-cd ..
-rm -rf tmp
-bzip2 roles/fetch-dynamic-data/files/media.tar
+if [ ! -f "./roles/fetch-dynamic-data/files/media.tar.bz2" ]; then
 
-echo "Created empty media.tar.bz2"
+  mkdir tmp && cd tmp
+  touch EMPTY
+  mkdir -p ../roles/fetch-dynamic-data/files
+  tar cf ../roles/fetch-dynamic-data/files/media.tar *
+  cd ..
+  rm -rf tmp
+  bzip2 roles/fetch-dynamic-data/files/media.tar
+
+  echo "Created empty media.tar.bz2"
+
+fi
 
