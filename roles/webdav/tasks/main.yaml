@@ -15,3 +15,6 @@
   command: a2enmod dav_fs creates=/etc/apache2/mods-enabled/dav_fs.conf
   notify: restart apache2
 
+- name: Enable mod headers
+  command: a2enmod headers creates=/etc/apache2/mods-enabled/headers.load
+  notify: restart apache2
