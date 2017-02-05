@@ -1,13 +1,13 @@
 #!/bin/bash
 
-ACCESS_FILES=(access)
+ACCESS_FILES=(access access_webdav)
 for FILE in ${ACCESS_FILES[@]}; do
 	
 	mkdir -p /var/www/webstats/$FILE
-	(find /var/log/apache2/ -name "$FILE*" -not -name "*.gz" -type f -mtime -$(date +%d) | while read -r filename
+	(find /var/log/apache2/ -name "$FILE.*" -not -name "*.gz" -type f -mtime -$(date +%d) | while read -r filename
 		do cat "$filename"
 	done
-	find /var/log/apache2/ -name "$FILE*.gz" -type f -mtime -$(date +%d) | while read -r filename
+	find /var/log/apache2/ -name "$FILE.*.gz" -type f -mtime -$(date +%d) | while read -r filename
 		do zcat "$filename"
 	done) | /bin/grep --text $(date +/%b/%Y:) | goaccess -a 1>/var/www/webstats/$FILE/index-$(date +%b-%Y).html 2>/dev/null
 
