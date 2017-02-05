@@ -62,3 +62,23 @@
 
 - name: replace default index.html
   copy: src=index.html dest=/var/www/html
+
+- name: enable mod remoteip
+  command: a2enmod remoteip creates=/etc/apache2/mods-enabled/remoteip.load
+  notify: restart apache2
+
+- name: copy remoteip conf
+  copy: src=remoteip.conf dest=/etc/apache2/conf-available
+  notify: restart apache2
+
+- name: enable remoteip conf
+  command: a2enconf remoteip creates=/etc/apache2/conf-enabled/remoteip.conf
+  notify: restart apache2
+
+- name: change log format as we are always behind a proxy - combined
+  lineinfile: dest=/etc/apache2/apache2.conf regexp='LogFormat.*" combined' line='LogFormat "%a %l %u %t \\"%r\\" %>s %O \\"%{Referer}i\\" \\"%{User-Agent}i\\"" combined'
+  notify: restart apache2
+
+- name: change log format as we are always behind a proxy - common
+  lineinfile: dest=/etc/apache2/apache2.conf regexp='LogFormat.*" common' line='LogFormat "%a %l %u %t \\"%r\\" %>s %O" common'
+  notify: restart apache2
