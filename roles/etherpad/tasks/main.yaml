@@ -21,6 +21,7 @@
     repo: git://github.com/ether/etherpad-lite.git
     dest: /opt/etherpad
   register: check_download
+  notify: restart etherpad
 
 - name: create user etherpad
   user: name=etherpad
@@ -35,6 +36,7 @@
 - name: set group for /var/lib/node/etherpad
   file: state=directory path=/opt/etherpad owner=etherpad group=etherpad recurse=yes
   when: check_download.changed
+  notify: restart etherpad
 
 - name: enable and start noded
   service: name=etherpad state=started enabled=yes
