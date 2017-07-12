@@ -1,2 +1,2 @@
 MAILTO="{{ adminEmail }}"
-45	10	2	*	*	/usr/local/bin/update-certificates.sh
+45	10	2	*	* root	/usr/local/bin/update-certificates.sh
